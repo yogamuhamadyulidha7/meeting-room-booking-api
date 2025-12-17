@@ -3,7 +3,7 @@ namespace App\OpenApi;
 use OpenApi\Annotations as OA;
 /**
  * @OA\Info(
- * title="meeting room api",
+ * title="Meeting Room Api",
  * version="1.0.0",
  * description="API documentation for meeting room api with Passport (client_credentials)"
  * )

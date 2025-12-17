@@ -4,13 +4,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Models\Payment;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes (API KEY AUTH - TANPA SESSION)
+| API Routes (PAKAI API KEY - TANPA SESSION)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware('api.key')->group(function () {
 
     // Booking API
@@ -19,30 +19,63 @@ Route::middleware('api.key')->group(function () {
     Route::put('/bookings/{id}', [BookingController::class, 'update']);
     Route::delete('/bookings/{id}', [BookingController::class, 'destroy']);
 
-    // Payment API
+    // Create Invoice (Xendit)
     Route::post('/payments', [PaymentController::class, 'createInvoice']);
-    Route::post('/payment', [PaymentController::class, 'webhook']);
 });
 
 /*
 |--------------------------------------------------------------------------
-| Xendit Webhook (TIDAK pakai API Key)
+| XENDIT WEBHOOK (TANPA API KEY)
 |--------------------------------------------------------------------------
+| Endpoint ini dipanggil LANGSUNG oleh Xendit
+| Status sukses = SETTLED atau PAID
 */
 Route::post('/xendit/webhook', function (Request $request) {
 
-    $callbackToken = $request->header('x-callback-token');
-
-    if ($callbackToken !== env('XENDIT_WEBHOOK_SECRET')) {
+    // Validasi callback token
+    if ($request->header('x-callback-token') !== env('XENDIT_WEBHOOK_SECRET')) {
         return response()->json(['message' => 'Unauthorized'], 401);
     }
 
-    $payment = \App\Models\Payment::where('invoice_id', $request->id)->first();
+    $invoiceId = $request->id;
+    $status = $request->status; // SETTLED, PAID, EXPIRED, dll
 
-    if ($payment && $request->status === 'PAID') {
-        $payment->update(['status' => 'PAID']);
-        $payment->booking->update(['status' => 'PAID']);
+    $payment = Payment::where('invoice_id', $invoiceId)->first();
+
+    if (!$payment) {
+        return response()->json(['message' => 'Payment not found'], 404);
     }
 
-    return response()->json(['message' => 'Webhook received']);
+    /**
+     * PEMBAYARAN BERHASIL
+     */
+    if (in_array($status, ['PAID', 'SETTLED'])) {
+
+        $payment->update([
+            'status' => 'PAID'
+        ]);
+
+        $payment->booking->update([
+            'status' => 'BOOKED'
+        ]);
+    }
+
+    /**
+     * PEMBAYARAN GAGAL / EXPIRED
+     */
+    if ($status === 'EXPIRED') {
+
+        $payment->update([
+            'status' => 'EXPIRED'
+        ]);
+
+        $payment->booking->update([
+            'status' => 'CANCELLED'
+        ]);
+    }
+
+    return response()->json([
+        'message' => 'Webhook processed',
+        'xendit_status' => $status
+    ]);
 });

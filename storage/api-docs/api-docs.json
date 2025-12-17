@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "meeting room api",
+        "title": "Meeting Room Api",
         "description": "API documentation for meeting room api with Passport (client_credentials)",
         "version": "1.0.0"
     },
@@ -21,7 +21,7 @@
                     "Bookings"
                 ],
                 "summary": "Melakukan booking ruang meeting",
-                "description": "Endpoint untuk melakukan booking ruang meeting dan menghasilkan payment link melalui Xendit.",
+                "description": "Menyimpan booking ruang meeting dengan status UNPAID dan menghasilkan payment link melalui Xendit.",
                 "operationId": "43e6dcca842886074084b8db86af7802",
                 "requestBody": {
                     "required": true,
@@ -72,7 +72,7 @@
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Booking berhasil"
+                                            "example": "Booking berhasil, silakan lakukan pembayaran"
                                         },
                                         "booking": {
                                             "properties": {
@@ -102,7 +102,7 @@
                                                 },
                                                 "status": {
                                                     "type": "string",
-                                                    "example": "BOOKED"
+                                                    "example": "UNPAID"
                                                 }
                                             },
                                             "type": "object"

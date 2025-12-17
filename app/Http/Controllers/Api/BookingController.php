@@ -13,15 +13,11 @@ use Xendit\XenditSdkException;
 class BookingController extends Controller
 {
     /**
-     * Store a newly created booking.
-     */
-
-    /**
      * @OA\Post(
      *   path="/api/bookings",
      *   tags={"Bookings"},
      *   summary="Melakukan booking ruang meeting",
-     *   description="Endpoint untuk melakukan booking ruang meeting dan menghasilkan payment link melalui Xendit.",
+     *   description="Menyimpan booking ruang meeting dengan status UNPAID dan menghasilkan payment link melalui Xendit.",
      *
      *   @OA\RequestBody(
      *     required=true,
@@ -39,7 +35,7 @@ class BookingController extends Controller
      *     response=201,
      *     description="Booking berhasil dibuat",
      *     @OA\JsonContent(
-     *       @OA\Property(property="message", type="string", example="Booking berhasil"),
+     *       @OA\Property(property="message", type="string", example="Booking berhasil, silakan lakukan pembayaran"),
      *       @OA\Property(
      *         property="booking",
      *         type="object",
@@ -49,7 +45,7 @@ class BookingController extends Controller
      *         @OA\Property(property="booking_date", type="string", example="2025-12-20"),
      *         @OA\Property(property="start_time", type="string", example="09:00"),
      *         @OA\Property(property="end_time", type="string", example="11:00"),
-     *         @OA\Property(property="status", type="string", example="BOOKED")
+     *         @OA\Property(property="status", type="string", example="UNPAID")
      *       ),
      *       @OA\Property(
      *         property="payment_url",
@@ -83,7 +79,9 @@ class BookingController extends Controller
             'end_time' => 'required',
         ]);
 
-        // Simpan booking
+        /**
+         * SIMPAN BOOKING (BELUM DIBAYAR)
+         */
         $booking = Booking::create([
             'meeting_room_id' => $data['meeting_room_id'],
             'booked_by' => $data['booked_by'],
@@ -93,7 +91,9 @@ class BookingController extends Controller
             'status' => 'BOOKED'
         ]);
 
-        // Konfigurasi Xendit
+        /**
+         * BUAT INVOICE XENDIT
+         */
         Configuration::setXenditKey(config('services.xendit.secret_key'));
 
         $api = new InvoiceApi();
@@ -116,7 +116,7 @@ class BookingController extends Controller
         }
 
         return response()->json([
-            'message' => 'Booking berhasil',
+            'message' => 'Booking berhasil, silakan lakukan pembayaran',
             'booking' => $booking,
             'payment_url' => $invoice['invoice_url']
         ], 201);
