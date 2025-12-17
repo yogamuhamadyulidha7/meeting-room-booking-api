@@ -1,0 +1,159 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "meeting room api",
+        "description": "API documentation for meeting room api with Passport (client_credentials)",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local development server"
+        },
+        {
+            "url": "/api"
+        }
+    ],
+    "paths": {
+        "/api/bookings": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Melakukan booking ruang meeting",
+                "description": "Endpoint untuk melakukan booking ruang meeting dan menghasilkan payment link melalui Xendit.",
+                "operationId": "43e6dcca842886074084b8db86af7802",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "meeting_room_id",
+                                    "booked_by",
+                                    "booking_date",
+                                    "start_time",
+                                    "end_time"
+                                ],
+                                "properties": {
+                                    "meeting_room_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "booked_by": {
+                                        "type": "string",
+                                        "example": "Andi Wijaya"
+                                    },
+                                    "booking_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-20"
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "example": "09:00"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "example": "11:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Booking berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Booking berhasil"
+                                        },
+                                        "booking": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "meeting_room_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "booked_by": {
+                                                    "type": "string",
+                                                    "example": "Andi Wijaya"
+                                                },
+                                                "booking_date": {
+                                                    "type": "string",
+                                                    "example": "2025-12-20"
+                                                },
+                                                "start_time": {
+                                                    "type": "string",
+                                                    "example": "09:00"
+                                                },
+                                                "end_time": {
+                                                    "type": "string",
+                                                    "example": "11:00"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "BOOKED"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "payment_url": {
+                                            "type": "string",
+                                            "example": "https://checkout.xendit.co/..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Kesalahan server / Xendit error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "passport": {
+                "type": "http",
+                "description": "Use the access token from Passport client_credentials",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Bookings",
+            "description": "Bookings"
+        }
+    ]
+}
